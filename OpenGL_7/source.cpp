@@ -67,6 +67,8 @@ int main() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0); // unbind buffer
 	glBindVertexArray(0);
 
+	// EXERCISE 2: Setting offset value
+	int offset = glGetUniformLocation(shader.getID(), "offset");
 
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -79,6 +81,7 @@ int main() {
 		int vertexColorLocation = glGetUniformLocation(shader.getID(), "greenColor");
 		
 		shader.use();
+		glUniform1f(offset, 0.5);
 		glUniform4f(vertexColorLocation, 0.0, greenValue, 0.0, 0.0);
 
 		glBindVertexArray(VAO);
