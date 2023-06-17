@@ -3,27 +3,13 @@
 
 #include <iostream>
 
+#include "Shader.h"
+
 const int SCR_WIDTH = 800;
 const int SCR_HEIGHT = 600;
 
 void framebuffer_size_callback(GLFWwindow*, int, int);
 void processInput(GLFWwindow*);
-
-// shaders
-const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
-
-const char* fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"uniform vec4 greenColor;\n"
-"void main()\n"
-"{\n"
-"	FragColor = greenColor;\n"
-"}\n\0";
 
 int main() {
 
@@ -57,43 +43,7 @@ int main() {
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
 	std::cout << "Maximum number of vertex attributes supported: " << nrAttributes << std::endl;
 
-	// building and compiling shaders
-	int success;
-	char infolog[512];
-
-	// vertex shader
-	unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infolog);
-		std::cerr << "ERROR: Failed to compile vertex shader\n" << infolog << std::endl;
-	}
-
-	// fragment shader
-	unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infolog);
-		std::cerr << "ERROR: Failed to compile fragment shader\n" << infolog << std::endl;
-	}
-
-	// linking shaders
-	unsigned int shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(shaderProgram, 512, NULL, infolog);
-		std::cerr << "ERROR: Failed to link shader program\n" << infolog << std::endl;
-	}
-
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	Shader shader("shaders/vertexShader.vert", "shaders/fragmentShader.frag");
 
 	// vertex data
 	float vertices[] = {
@@ -126,9 +76,9 @@ int main() {
 
 		float timeValue = glfwGetTime();
 		float greenValue = sin(timeValue) / 2 + 0.5;
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "greenColor");
+		int vertexColorLocation = glGetUniformLocation(shader.getID(), "greenColor");
 		
-		glUseProgram(shaderProgram);
+		shader.use();
 		glUniform4f(vertexColorLocation, 0.0, greenValue, 0.0, 0.0);
 
 		glBindVertexArray(VAO);
@@ -140,7 +90,7 @@ int main() {
 
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	glDeleteProgram(shaderProgram);
+	glDeleteProgram(shader.getID());
 
 	glfwTerminate();
 
